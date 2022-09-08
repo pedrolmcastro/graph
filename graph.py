@@ -41,6 +41,9 @@ class Graph:
         population = set(range(vertices))
         self.adj = [[self.Edge(dest, self.dist(vertex, dest)) for dest in random.sample(population - {vertex}, neighbors)] for vertex in range(vertices)]
 
+    def __getitem__(self, key: int):
+        return self.adj[key]
+
     def dist(self, src: int, dest: int):
-        """Returns the geometric distance from the src vertex to dest"""
+        """Returns the geometric distance from src to dest"""
         return math.sqrt((self.coords[dest].x - self.coords[src].x) ** 2 + (self.coords[dest].y - self.coords[src].y) ** 2)
