@@ -1,3 +1,4 @@
+import math
 import heapq
 
 from graph import Graph
@@ -27,7 +28,8 @@ def dfs(graph: Graph, src: int, dest: int):
 
         if curr == dest:
             return traceback(parents, dest), dist, visited
-        if curr in visited:
+
+        if curr in visited: # Ignore redundant entries
             continue
 
         visited.add(curr)
@@ -37,7 +39,7 @@ def dfs(graph: Graph, src: int, dest: int):
                 stack.append((neighbor, dist + weight))
                 parents[neighbor] = curr
 
-    return [], None, visited
+    return [], math.inf, visited
 
 
 def bfs(graph: Graph, src: int, dest: int):
@@ -59,7 +61,7 @@ def bfs(graph: Graph, src: int, dest: int):
                 queue.append((neighbor, dist + weight))
                 parents[neighbor] = curr
 
-    return [], None, visited
+    return [], math.inf, visited
 
 
 def bestfirst(graph: Graph, src: int, dest: int):
@@ -79,11 +81,36 @@ def bestfirst(graph: Graph, src: int, dest: int):
                 heapq.heappush(queue, (dist + weight, neighbor))
                 parents[neighbor] = curr
 
-    return [], None, visited
+    return [], math.inf, visited
 
 
 def dijkstra(graph: Graph, src: int, dest: int):
-    return NotImplemented
+    parents: dict[int, int] = {}
+    visited: set[int] = set()
+    queue = [(0.0, src)]
+
+    dists = [math.inf for _ in range(len(graph))]
+    dists[src] = 0.0
+
+    while queue:
+        dist, curr = heapq.heappop(queue)
+        visited.add(curr)
+
+        if curr == dest:
+            return traceback(parents, dest), dists[dest], visited
+
+        if dist > dists[curr]: # Ignore redundant entries
+            continue
+
+        for neighbor, weight in graph[curr]:
+            dist = dists[curr] + weight
+
+            if dist < dists[neighbor]:
+                dists[neighbor] = dist
+                parents[neighbor] = curr
+                heapq.heappush(queue, (dist, neighbor))
+
+    return [], math.inf, visited
 
 
 def astar(graph: Graph, src: int, dest: int):

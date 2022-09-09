@@ -44,6 +44,9 @@ class Graph:
     def __getitem__(self, key: int):
         return self.adj[key]
 
+    def __len__(self):
+        return len(self.coords)
+
     def dist(self, src: int, dest: int):
         """Returns the geometric distance from src to dest"""
         return math.sqrt((self.coords[dest].x - self.coords[src].x) ** 2 + (self.coords[dest].y - self.coords[src].y) ** 2)
