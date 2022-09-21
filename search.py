@@ -2,6 +2,7 @@ import math
 import heapq
 
 from graph import Graph
+from typing import Callable
 from collections import deque
 
 
@@ -93,16 +94,17 @@ def bestfirst(graph: Graph, src: int, dest: int):
     return search(graph, src, dest, PriorityQueue())
 
 
-def dijkstra(graph: Graph, src: int, dest: int):
+def astar(graph: Graph, src: int, dest: int, heuristic: Callable[[int, int], float]):
     parents: dict[int, int] = {}
     visited: set[int] = set()
-    queue = [(0.0, src)]
+
+    queue = [(0.0, 0.0, src)]
 
     dists = [math.inf for _ in range(len(graph))]
     dists[src] = 0.0
 
     while queue:
-        dist, curr = heapq.heappop(queue)
+        _, dist, curr = heapq.heappop(queue)
         visited.add(curr)
 
         if curr == dest:
@@ -117,10 +119,9 @@ def dijkstra(graph: Graph, src: int, dest: int):
             if dist < dists[neighbor]:
                 dists[neighbor] = dist
                 parents[neighbor] = curr
-                heapq.heappush(queue, (dist, neighbor))
+                heapq.heappush(queue, (dist + heuristic(neighbor, dest), dist, neighbor))
 
     return math.inf, [], visited
 
-
-def astar(graph: Graph, src: int, dest: int):
-    return NotImplemented
+def dijkstra(graph: Graph, src: int, dest: int):
+    return astar(graph, src, dest, lambda curr, dest: 0)
