@@ -5,6 +5,46 @@ from graph import Graph
 from collections import deque
 
 
+class Stack:
+    def __init__(self):
+        self.stack: list[tuple[float, int]] = []
+
+    def __len__(self):
+        return len(self.stack)
+
+    def insert(self, dist: float, vertex: int):
+        self.stack.append((dist, vertex))
+
+    def remove(self):
+        return self.stack.pop()
+
+class Queue:
+    def __init__(self):
+        self.queue: deque[tuple[float, int]] = deque()
+
+    def __len__(self):
+        return len(self.queue)
+
+    def insert(self, dist: float, vertex: int):
+        self.queue.append((dist, vertex))
+
+    def remove(self):
+        return self.queue.popleft()
+
+class PriorityQueue:
+    def __init__(self):
+        self.queue: list[tuple[float, int]] = []
+
+    def __len__(self):
+        return len(self.queue)
+
+    def insert(self, dist: float, vertex: int):
+        heapq.heappush(self.queue, (dist, vertex))
+
+    def remove(self):
+        return heapq.heappop(self.queue)
+
+
 def traceback(parents: dict[int, int], dest: int):
     """Returns the path taken to dest"""
     path = []
@@ -18,16 +58,17 @@ def traceback(parents: dict[int, int], dest: int):
     return path
 
 
-def dfs(graph: Graph, src: int, dest: int):
+def search(graph: Graph, src: int, dest: int, agenda: Stack | Queue | PriorityQueue):
     parents: dict[int, int] = {}
     visited: set[int] = set()
-    stack = [(src, 0.0)]
 
-    while stack:
-        curr, dist = stack.pop()
+    agenda.insert(0.0, src)
+
+    while agenda:
+        dist, curr = agenda.remove()
 
         if curr == dest:
-            return traceback(parents, dest), dist, visited
+            return dist, traceback(parents, dest), visited
 
         if curr in visited: # Ignore redundant entries
             continue
@@ -36,52 +77,20 @@ def dfs(graph: Graph, src: int, dest: int):
 
         for neighbor, weight in graph[curr]:
             if neighbor not in visited:
-                stack.append((neighbor, dist + weight))
+                agenda.insert(dist + weight, neighbor)
                 parents[neighbor] = curr
 
-    return [], math.inf, visited
+    return math.inf, [], visited
 
+
+def dfs(graph: Graph, src: int, dest: int):
+    return search(graph, src, dest, Stack())
 
 def bfs(graph: Graph, src: int, dest: int):
-    parents: dict[int, int] = {}
-    visited: set[int] = set()
-
-    queue: deque[tuple[int, float]] = deque()
-    queue.append((src, 0.0))
-
-    while queue:
-        curr, dist = queue.popleft()
-        visited.add(curr)
-
-        if curr == dest:
-            return traceback(parents, dest), dist, visited
-
-        for neighbor, weight in graph[curr]:
-            if neighbor not in visited:
-                queue.append((neighbor, dist + weight))
-                parents[neighbor] = curr
-
-    return [], math.inf, visited
-
+    return search(graph, src, dest, Queue())
 
 def bestfirst(graph: Graph, src: int, dest: int):
-    parents: dict[int, int] = {}
-    visited: set[int] = set()
-    queue = [(0.0, src)]
-
-    while queue:
-        dist, curr = heapq.heappop(queue)
-        visited.add(curr)
-
-        if curr == dest:
-            return traceback(parents, dest), dist, visited
-
-        for neighbor, weight in graph[curr]:
-            if neighbor not in visited:
-                heapq.heappush(queue, (dist + weight, neighbor))
-                parents[neighbor] = curr
-
-    return [], math.inf, visited
+    return search(graph, src, dest, PriorityQueue())
 
 
 def dijkstra(graph: Graph, src: int, dest: int):
@@ -97,7 +106,7 @@ def dijkstra(graph: Graph, src: int, dest: int):
         visited.add(curr)
 
         if curr == dest:
-            return traceback(parents, dest), dists[dest], visited
+            return dists[dest], traceback(parents, dest), visited
 
         if dist > dists[curr]: # Ignore redundant entries
             continue
@@ -110,7 +119,7 @@ def dijkstra(graph: Graph, src: int, dest: int):
                 parents[neighbor] = curr
                 heapq.heappush(queue, (dist, neighbor))
 
-    return [], math.inf, visited
+    return math.inf, [], visited
 
 
 def astar(graph: Graph, src: int, dest: int):
