@@ -6,48 +6,8 @@ from typing import Callable
 from collections import deque
 
 
-class Stack:
-    def __init__(self):
-        self.stack: list[tuple[float, int]] = []
-
-    def __len__(self):
-        return len(self.stack)
-
-    def insert(self, dist: float, vertex: int):
-        self.stack.append((dist, vertex))
-
-    def remove(self):
-        return self.stack.pop()
-
-class Queue:
-    def __init__(self):
-        self.queue: deque[tuple[float, int]] = deque()
-
-    def __len__(self):
-        return len(self.queue)
-
-    def insert(self, dist: float, vertex: int):
-        self.queue.append((dist, vertex))
-
-    def remove(self):
-        return self.queue.popleft()
-
-class PriorityQueue:
-    def __init__(self):
-        self.queue: list[tuple[float, int]] = []
-
-    def __len__(self):
-        return len(self.queue)
-
-    def insert(self, dist: float, vertex: int):
-        heapq.heappush(self.queue, (dist, vertex))
-
-    def remove(self):
-        return heapq.heappop(self.queue)
-
-
-def traceback(parents: dict[int, int], goal: int):
-    """Returns the path taken to goal"""
+def _traceback(parents: dict[int, int], goal: int):
+    """Returns the path taken to the goal"""
     path = []
     curr: int | None = goal
 
@@ -59,7 +19,7 @@ def traceback(parents: dict[int, int], goal: int):
     return path
 
 
-def search(graph: Graph, src: int, goal: int, agenda: Stack | Queue | PriorityQueue):
+def _agenda(graph: Graph, src: int, goal: int, agenda):
     parents: dict[int, int] = {}
     visited: set[int] = set()
 
@@ -69,7 +29,7 @@ def search(graph: Graph, src: int, goal: int, agenda: Stack | Queue | PriorityQu
         dist, curr = agenda.remove()
 
         if curr == goal:
-            return dist, traceback(parents, goal), visited
+            return dist, _traceback(parents, goal), visited
 
         if curr in visited: # Ignore redundant entries
             continue
@@ -85,16 +45,57 @@ def search(graph: Graph, src: int, goal: int, agenda: Stack | Queue | PriorityQu
 
 
 def dfs(graph: Graph, src: int, goal: int):
-    return search(graph, src, goal, Stack())
+    class Stack:
+        def __init__(self):
+            self.stack: list[tuple[float, int]] = []
+
+        def __len__(self):
+            return len(self.stack)
+
+        def insert(self, dist: float, vertex: int):
+            self.stack.append((dist, vertex))
+
+        def remove(self):
+            return self.stack.pop()
+
+    return _agenda(graph, src, goal, Stack())
+
 
 def bfs(graph: Graph, src: int, goal: int):
-    return search(graph, src, goal, Queue())
+    class Queue:
+        def __init__(self):
+            self.queue: deque[tuple[float, int]] = deque()
+
+        def __len__(self):
+            return len(self.queue)
+
+        def insert(self, dist: float, vertex: int):
+            self.queue.append((dist, vertex))
+
+        def remove(self):
+            return self.queue.popleft()
+
+    return _agenda(graph, src, goal, Queue())
+
 
 def bestfirst(graph: Graph, src: int, goal: int):
-    return search(graph, src, goal, PriorityQueue())
+    class PriorityQueue:
+        def __init__(self):
+            self.queue: list[tuple[float, int]] = []
+
+        def __len__(self):
+            return len(self.queue)
+
+        def insert(self, dist: float, vertex: int):
+            heapq.heappush(self.queue, (dist, vertex))
+
+        def remove(self):
+            return heapq.heappop(self.queue)
+
+    return _agenda(graph, src, goal, PriorityQueue())
 
 
-def astar(graph: Graph, src: int, goal: int, heuristic: Callable[[int, int], float]):
+def _astar(graph: Graph, src: int, goal: int, heuristic: Callable[[int, int], float]):
     parents: dict[int, int] = {}
     visited: set[int] = set()
 
@@ -108,7 +109,7 @@ def astar(graph: Graph, src: int, goal: int, heuristic: Callable[[int, int], flo
         visited.add(curr)
 
         if curr == goal:
-            return dists[goal], traceback(parents, goal), visited
+            return dists[goal], _traceback(parents, goal), visited
 
         if dist > dists[curr]: # Ignore redundant entries
             continue
@@ -123,5 +124,14 @@ def astar(graph: Graph, src: int, goal: int, heuristic: Callable[[int, int], flo
 
     return math.inf, [], visited
 
+
 def dijkstra(graph: Graph, src: int, goal: int):
-    return astar(graph, src, goal, lambda curr, goal: 0)
+    return _astar(graph, src, goal, lambda curr, goal: 0.0)
+
+
+def a(graph: Graph, src: int, goal: int):
+    return NotImplemented
+
+
+def astar(graph: Graph, src: int, goal: int):
+    return _astar(graph, src, goal, lambda curr, goal: graph.dist(curr, goal))
