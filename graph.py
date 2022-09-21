@@ -41,8 +41,8 @@ class Graph:
         self.coords = [self.Coord(random.uniform(0, vertices), random.uniform(0, vertices)) for _ in range(vertices)]
 
         # Generate the vertices neighbors
-        neighbors = set(range(vertices))
-        self.adj = [[self.Edge(neighbor, self.dist(vertex, neighbor)) for neighbor in random.sample(neighbors - {vertex}, neighbors)] for vertex in range(vertices)]
+        population = set(range(vertices))
+        self.adj = [[self.Edge(neighbor, self.dist(vertex, neighbor)) for neighbor in random.sample(population - {vertex}, neighbors)] for vertex in range(vertices)]
 
     def __str__(self):
         return f"Graph with {self.vertices} vertices and {self.neighbors} neighbors"
