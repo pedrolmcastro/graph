@@ -46,10 +46,10 @@ class PriorityQueue:
         return heapq.heappop(self.queue)
 
 
-def traceback(parents: dict[int, int], dest: int):
-    """Returns the path taken to dest"""
+def traceback(parents: dict[int, int], goal: int):
+    """Returns the path taken to goal"""
     path = []
-    curr: int | None = dest
+    curr: int | None = goal
 
     while curr is not None:
         path.append(curr)
@@ -59,7 +59,7 @@ def traceback(parents: dict[int, int], dest: int):
     return path
 
 
-def search(graph: Graph, src: int, dest: int, agenda: Stack | Queue | PriorityQueue):
+def search(graph: Graph, src: int, goal: int, agenda: Stack | Queue | PriorityQueue):
     parents: dict[int, int] = {}
     visited: set[int] = set()
 
@@ -68,8 +68,8 @@ def search(graph: Graph, src: int, dest: int, agenda: Stack | Queue | PriorityQu
     while agenda:
         dist, curr = agenda.remove()
 
-        if curr == dest:
-            return dist, traceback(parents, dest), visited
+        if curr == goal:
+            return dist, traceback(parents, goal), visited
 
         if curr in visited: # Ignore redundant entries
             continue
@@ -84,17 +84,17 @@ def search(graph: Graph, src: int, dest: int, agenda: Stack | Queue | PriorityQu
     return math.inf, [], visited
 
 
-def dfs(graph: Graph, src: int, dest: int):
-    return search(graph, src, dest, Stack())
+def dfs(graph: Graph, src: int, goal: int):
+    return search(graph, src, goal, Stack())
 
-def bfs(graph: Graph, src: int, dest: int):
-    return search(graph, src, dest, Queue())
+def bfs(graph: Graph, src: int, goal: int):
+    return search(graph, src, goal, Queue())
 
-def bestfirst(graph: Graph, src: int, dest: int):
-    return search(graph, src, dest, PriorityQueue())
+def bestfirst(graph: Graph, src: int, goal: int):
+    return search(graph, src, goal, PriorityQueue())
 
 
-def astar(graph: Graph, src: int, dest: int, heuristic: Callable[[int, int], float]):
+def astar(graph: Graph, src: int, goal: int, heuristic: Callable[[int, int], float]):
     parents: dict[int, int] = {}
     visited: set[int] = set()
 
@@ -107,8 +107,8 @@ def astar(graph: Graph, src: int, dest: int, heuristic: Callable[[int, int], flo
         _, dist, curr = heapq.heappop(queue)
         visited.add(curr)
 
-        if curr == dest:
-            return dists[dest], traceback(parents, dest), visited
+        if curr == goal:
+            return dists[goal], traceback(parents, goal), visited
 
         if dist > dists[curr]: # Ignore redundant entries
             continue
@@ -119,9 +119,9 @@ def astar(graph: Graph, src: int, dest: int, heuristic: Callable[[int, int], flo
             if dist < dists[neighbor]:
                 dists[neighbor] = dist
                 parents[neighbor] = curr
-                heapq.heappush(queue, (dist + heuristic(neighbor, dest), dist, neighbor))
+                heapq.heappush(queue, (dist + heuristic(neighbor, goal), dist, neighbor))
 
     return math.inf, [], visited
 
-def dijkstra(graph: Graph, src: int, dest: int):
-    return astar(graph, src, dest, lambda curr, dest: 0)
+def dijkstra(graph: Graph, src: int, goal: int):
+    return astar(graph, src, goal, lambda curr, goal: 0)

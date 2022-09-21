@@ -21,32 +21,39 @@ class Graph:
 
     @dataclass(repr = False)
     class Edge:
-        dest: int
+        neighbor: int
         weight: float
 
         def __iter__(self): # Allow unpacking
-            return iter((self.dest, self.weight))
+            return iter((self.neighbor, self.weight))
 
         def __str__(self):
-            return f"({self.dest}, {self.weight :.2f})"
+            return f"({self.neighbor}, {self.weight :.2f})"
 
         __repr__ = __str__
 
 
     def __init__(self, vertices: int, neighbors: int):
+        self.vertices = vertices
+        self.neighbors = neighbors
+
         # Generate the vertices x and y coordinates
         self.coords = [self.Coord(random.uniform(0, vertices), random.uniform(0, vertices)) for _ in range(vertices)]
 
         # Generate the vertices neighbors
-        population = set(range(vertices))
-        self.adj = [[self.Edge(dest, self.dist(vertex, dest)) for dest in random.sample(population - {vertex}, neighbors)] for vertex in range(vertices)]
+        neighbors = set(range(vertices))
+        self.adj = [[self.Edge(neighbor, self.dist(vertex, neighbor)) for neighbor in random.sample(neighbors - {vertex}, neighbors)] for vertex in range(vertices)]
+
+    def __str__(self):
+        return f"Graph with {self.vertices} vertices and {self.neighbors} neighbors"
 
     def __getitem__(self, key: int):
         return self.adj[key]
 
     def __len__(self):
-        return len(self.coords)
+        return self.vertices
 
-    def dist(self, src: int, dest: int):
-        """Returns the geometric distance from src to dest"""
-        return math.sqrt((self.coords[dest].x - self.coords[src].x) ** 2 + (self.coords[dest].y - self.coords[src].y) ** 2)
+
+    def dist(self, src: int, goal: int):
+        """Returns the geometric distance from src to goal"""
+        return math.sqrt((self.coords[goal].x - self.coords[src].x) ** 2 + (self.coords[goal].y - self.coords[src].y) ** 2)
