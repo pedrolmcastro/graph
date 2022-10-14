@@ -98,8 +98,7 @@ def display():
                                alpha=0.1, ax=ax)
 
         # Edges
-        nx.draw_networkx_edges(pgraph, pos, edgelist=pgraph.edges, width=0.5, edge_color=range(len(pgraph.edges)),
-                               edge_cmap=plt.cm.cool, ax=ax)
+        nx.draw_networkx_edges(pgraph, pos, edgelist=pgraph.edges, width=0.5, edge_color="black", ax=ax)
 
         # Path node labels
         nx.draw_networkx_labels(pgraph, pos, labels, font_family="sans-serif", font_size=10, ax=ax)
