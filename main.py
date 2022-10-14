@@ -1,12 +1,22 @@
+import string
 import sys
 import math
 import time
 import random
 import search
 
+import networkx as nx
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
 from enum import Enum
 from graph import Graph
 from typing import Callable
+
+from matplotlib import rc
+
+# Change rc font
+rc('font', **{'family': 'sans-serif', 'sans-serif': ['Ubuntu']})
 
 
 class Mode(Enum):
@@ -26,8 +36,6 @@ def main():
 
 
 def display():
-    # TODO: Graphic path
-
     def readgraph():
         while True:
             try:
@@ -60,25 +68,93 @@ def display():
                 else:
                     return src, goal
 
+    def printpath(title: string, filename: string):
+        pgraph = nx.DiGraph()
+
+        # Label vertex
+        labels = {}
+        for vertex in path:
+            labels[vertex] = vertex
+
+        # Create nodes
+        for vertex in set(list(path) + list(visited)):
+            pgraph.add_node(vertex, pos=tuple(graph.coords[vertex]))
+
+        # Create edges
+        for vertex in path:
+            for adj in graph[vertex]:
+                if adj.neighbor in path:
+                    pgraph.add_edge(vertex, adj.neighbor, weight=round(adj.weight, 2))
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+
+        # Path nodes
+        pos = nx.get_node_attributes(pgraph, 'pos')
+        nx.draw_networkx_nodes(pgraph, pos, nodelist=path, node_size=500, node_color=range(len(path)), cmap=plt.cm.cool,
+                               alpha=1, edgecolors="black", ax=ax)
+
+        # Visited nodes
+        nx.draw_networkx_nodes(pgraph, pos, nodelist=visited, node_size=100, node_color="gray",
+                               alpha=0.1, ax=ax)
+
+        # Edges
+        nx.draw_networkx_edges(pgraph, pos, edgelist=pgraph.edges, width=0.5, edge_color=range(len(pgraph.edges)),
+                               edge_cmap=plt.cm.cool, ax=ax)
+
+        # Path node labels
+        nx.draw_networkx_labels(pgraph, pos, labels, font_family="sans-serif", font_size=10, ax=ax)
+
+        # Edge weight labels
+        edge_labels = nx.get_edge_attributes(pgraph, "weight")
+        nx.draw_networkx_edge_labels(pgraph, pos, edge_labels, font_family="sans-serif", font_size=8, ax=ax)
+
+        # Legend
+        cm = plt.cm.cool(range(256))
+        legend = [
+            mpatches.Patch(color=cm[0], label='Origem'),
+            mpatches.Patch(color=cm[-1], label="Destino"),
+            mpatches.Patch(color="gray", label="Visitado")
+        ]
+
+        # Box
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+        plt.title(title)
+        plt.legend(handles=legend)
+
+        # Scale
+        corr = int((graph.vertices * 0.05))
+        fig.gca().set_aspect('equal', adjustable='box')
+        plt.xlim(0 - corr, graph.vertices + corr)
+        plt.ylim(0 - corr, graph.vertices + corr)
+
+        # Export
+        fig.savefig(filename + ".png", dpi=250)
+        plt.show()
+
     graph = readgraph()
     src, goal = readvertices()
 
     print()
 
-    dist, path, _ = search.dfs(graph, src, goal)
+    dist, path, visited = search.dfs(graph, src, goal)
     print(f"DFS: {path} ({dist :.2f})")
+    printpath("DFS", "dfs")
 
-    dist, path, _ = search.bfs(graph, src, goal)
+    dist, path, visited = search.bfs(graph, src, goal)
     print(f"BFS: {path} ({dist :.2f})")
+    printpath("BFS", "bfs")
 
-    dist, path, _ = search.bestfirst(graph, src, goal)
+    dist, path, visited = search.bestfirst(graph, src, goal)
     print(f"Best First: {path} ({dist :.2f})")
+    printpath("Best First", "bestfirst")
 
-    dist, path, _ = search.dijkstra(graph, src, goal)
+    dist, path, visited = search.dijkstra(graph, src, goal)
     print(f"Dijkstra: {path} ({dist :.2f})")
+    printpath("Dijkstra", "dijkstra")
 
-    dist, path, _ = search.astar(graph, src, goal)
+    dist, path, visited = search.astar(graph, src, goal)
     print(f"A*: {path} ({dist :.2f})")
+    printpath("A*", "a_star")
 
 
 def measure():
@@ -134,14 +210,15 @@ def reachable(graph: Graph, src: int, goal: int):
 
 
 def error(message: str):
-    print("\033[31m", end = "") # Set font color to red
+    print("\033[31m", end="")  # Set font color to red
     print(f"Error: {message}!")
-    print("\033[0m", end = "")  # Reset font color
+    print("\033[0m", end="")  # Reset font color
+
 
 def stress(message: str):
-    print("\033[36m", end = "") # Set font color to blue
-    print(message, end = "\n\n")
-    print("\033[0m", end = "")  # Reset font color
+    print("\033[36m", end="")  # Set font color to blue
+    print(message, end="\n\n")
+    print("\033[0m", end="")  # Reset font color
 
 
 if __name__ == "__main__":
