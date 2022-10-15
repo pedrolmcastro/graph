@@ -6,30 +6,16 @@ from typing import Callable
 from collections import deque
 
 
-def _traceback(parents: dict[int, int], goal: int) -> list[int]:
-    """Returns the path taken to the goal"""
-    path = []
-    curr: int | None = goal
-
-    while curr is not None:
-        path.append(curr)
-        curr = parents.get(curr)
-
-    path.reverse()
-    return path
-
-
 def _agenda(graph: Graph, src: int, goal: int, agenda) -> tuple[float, list[int], set[int]]:
-    parents: dict[int, int] = {}
     visited: set[int] = set()
-
-    agenda.insert(0.0, src)
+    agenda.insert(0.0, [src])
 
     while agenda:
-        dist, curr = agenda.remove()
+        dist, path = agenda.remove()
+        curr = path[-1]
 
         if curr == goal:
-            return dist, _traceback(parents, goal), visited
+            return dist, path, visited
 
         if curr in visited: # Ignore redundant entries
             continue
@@ -38,8 +24,7 @@ def _agenda(graph: Graph, src: int, goal: int, agenda) -> tuple[float, list[int]
 
         for neighbor, weight in graph[curr]:
             if neighbor not in visited:
-                agenda.insert(dist + weight, neighbor)
-                parents[neighbor] = curr
+                agenda.insert(dist + weight, path + [neighbor])
 
     return math.inf, [], visited
 
@@ -47,13 +32,13 @@ def _agenda(graph: Graph, src: int, goal: int, agenda) -> tuple[float, list[int]
 def dfs(graph: Graph, src: int, goal: int):
     class Stack:
         def __init__(self):
-            self.stack: list[tuple[float, int]] = []
+            self.stack: list[tuple[float, list[int]]] = []
 
         def __len__(self):
             return len(self.stack)
 
-        def insert(self, dist: float, vertex: int):
-            self.stack.append((dist, vertex))
+        def insert(self, dist: float, path: list[int]):
+            self.stack.append((dist, path))
 
         def remove(self):
             return self.stack.pop()
@@ -64,13 +49,13 @@ def dfs(graph: Graph, src: int, goal: int):
 def bfs(graph: Graph, src: int, goal: int):
     class Queue:
         def __init__(self):
-            self.queue: deque[tuple[float, int]] = deque()
+            self.queue: deque[tuple[float, list[int]]] = deque()
 
         def __len__(self):
             return len(self.queue)
 
-        def insert(self, dist: float, vertex: int):
-            self.queue.append((dist, vertex))
+        def insert(self, dist: float, path: list[int]):
+            self.queue.append((dist, path))
 
         def remove(self):
             return self.queue.popleft()
@@ -81,13 +66,13 @@ def bfs(graph: Graph, src: int, goal: int):
 def bestfirst(graph: Graph, src: int, goal: int):
     class PriorityQueue:
         def __init__(self):
-            self.queue: list[tuple[float, int]] = []
+            self.queue: list[tuple[float, list[int]]] = []
 
         def __len__(self):
             return len(self.queue)
 
-        def insert(self, dist: float, vertex: int):
-            heapq.heappush(self.queue, (dist, vertex))
+        def insert(self, dist: float, path: list[int]):
+            heapq.heappush(self.queue, (dist, path))
 
         def remove(self):
             return heapq.heappop(self.queue)
@@ -96,6 +81,18 @@ def bestfirst(graph: Graph, src: int, goal: int):
 
 
 def _astar(graph: Graph, src: int, goal: int, heuristic: Callable[[int, int], float]) -> tuple[float, list[int], set[int]]:
+    def _traceback(parents: dict[int, int], goal: int) -> list[int]:
+        """Returns the path taken to the goal"""
+        path = []
+        curr: int | None = goal
+
+        while curr is not None:
+            path.append(curr)
+            curr = parents.get(curr)
+
+        path.reverse()
+        return path
+
     parents: dict[int, int] = {}
     visited: set[int] = set()
 

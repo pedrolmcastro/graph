@@ -11,7 +11,7 @@ class Color(Enum):
     BLACK = "#d5d5d5"
 
 
-def _points(graph: Graph, vertices: Iterable[int], color: Color, z = 0):
+def _points(graph: Graph, vertices: Iterable[int], color: Color, z = 0, label: str | None = None):
     x = []
     y = []
 
@@ -20,7 +20,7 @@ def _points(graph: Graph, vertices: Iterable[int], color: Color, z = 0):
         x.append(coord.x)
         y.append(coord.y)
 
-    plt.scatter(x, y, s = 15, c = color.value, zorder = z)
+    plt.scatter(x, y, s = 15, c = color.value, zorder = z, label = label)
 
 
 def vertices(graph: Graph):
@@ -32,12 +32,12 @@ def path(graph: Graph, dist: float, path: list[int], visited: set[int], title: s
     plt.clf()
 
     plt.suptitle(f"{title}")
-    plt.title(f"Distance: {dist :.2f}", fontsize = 5)
+    plt.title(f"Distância: {dist :.2f}", fontsize = 5)
 
     # Plot vertices as points
-    _points(graph, graph,   Color.GREY,  0)
-    _points(graph, visited, Color.BLACK, 1)
-    _points(graph, path,    Color.RED,   2)
+    _points(graph, graph,   Color.GREY,  0, "Não visitados")
+    _points(graph, visited, Color.BLACK, 1, "Visitados")
+    _points(graph, path,    Color.RED,   2, "No caminho")
 
     # Plot edges in the path as arrows
     for i in range(len(path) - 1):
@@ -49,4 +49,5 @@ def path(graph: Graph, dist: float, path: list[int], visited: set[int], title: s
 
         plt.arrow(x, y, dx, dy, length_includes_head = True, head_width = 0.01 * len(graph), head_length = 0.025 * len(graph), color = Color.RED.value, zorder = 3)
 
+    plt.legend()
     plt.savefig(title + ".png", dpi = 250)
