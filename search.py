@@ -6,7 +6,7 @@ from typing import Callable
 from collections import deque
 
 
-def _traceback(parents: dict[int, int], goal: int):
+def _traceback(parents: dict[int, int], goal: int) -> list[int]:
     """Returns the path taken to the goal"""
     path = []
     curr: int | None = goal
@@ -19,7 +19,7 @@ def _traceback(parents: dict[int, int], goal: int):
     return path
 
 
-def _agenda(graph: Graph, src: int, goal: int, agenda):
+def _agenda(graph: Graph, src: int, goal: int, agenda) -> tuple[float, list[int], set[int]]:
     parents: dict[int, int] = {}
     visited: set[int] = set()
 
@@ -95,13 +95,13 @@ def bestfirst(graph: Graph, src: int, goal: int):
     return _agenda(graph, src, goal, PriorityQueue())
 
 
-def _astar(graph: Graph, src: int, goal: int, heuristic: Callable[[int, int], float]):
+def _astar(graph: Graph, src: int, goal: int, heuristic: Callable[[int, int], float]) -> tuple[float, list[int], set[int]]:
     parents: dict[int, int] = {}
     visited: set[int] = set()
 
     queue = [(0.0, 0.0, src)]
 
-    dists = [math.inf for _ in range(len(graph))]
+    dists = [math.inf for _ in graph]
     dists[src] = 0.0
 
     while queue:
@@ -130,7 +130,7 @@ def dijkstra(graph: Graph, src: int, goal: int):
 
 
 def a(graph: Graph, src: int, goal: int):
-    return NotImplemented
+    return _astar(graph, src, goal, lambda curr, goal: 10 * graph.dist(curr, goal))
 
 
 def astar(graph: Graph, src: int, goal: int):

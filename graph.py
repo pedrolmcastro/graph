@@ -47,11 +47,14 @@ class Graph:
     def __str__(self):
         return f"Graph with {self.vertices} vertices and {self.neighbors} neighbors"
 
+    def __len__(self):
+        return self.vertices
+
     def __getitem__(self, key: int):
         return self.adj[key]
 
-    def __len__(self):
-        return self.vertices
+    def __iter__(self):
+        return iter(range(self.vertices))
 
 
     def dist(self, src: int, goal: int):
