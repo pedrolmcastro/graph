@@ -2,8 +2,8 @@ import math
 import heapq
 
 from graph import Graph
-from typing import Callable
 from collections import deque
+from typing import Callable
 
 
 def _agenda(graph: Graph, src: int, goal: int, agenda) -> tuple[float, list[int], set[int]]:

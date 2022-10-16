@@ -165,6 +165,7 @@ def display():
     graph = readgraph()
     src, goal = readvertices()
 
+    # Grafo original
     print()
     printgraph("Grafo", "grafo")
 

@@ -1,5 +1,5 @@
-import math
 import random
+import math
 
 from dataclasses import dataclass
 
