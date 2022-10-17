@@ -1,23 +1,15 @@
 import sys
 import math
+import plot
 import time
 import random
 import search
-import string
-
-import networkx as nx
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 
 from enum import Enum
 from graph import Graph
 from typing import Callable
 from dataclasses import dataclass
 
-from matplotlib import rc
-
-# Change rc font
-rc('font', **{'family': 'sans-serif', 'sans-serif': ['Ubuntu']})
 
 class Mode(Enum):
     DISPLAY = "display"
@@ -68,130 +60,14 @@ def display():
                 else:
                     return src, goal
 
-    def printgraph(title: string, filename: string):
-        pgraph = nx.DiGraph()
-
-        # Create nodes
-        labels = {}
-        for vertex in range(graph.vertices):
-            labels[vertex] = vertex
-            pgraph.add_node(vertex, pos=tuple(graph.coords[vertex]))
-
-        fig, ax = plt.subplots(figsize=(10, 10))
-
-        # Nodes
-        pos = nx.get_node_attributes(pgraph, 'pos')
-        nx.draw_networkx_nodes(pgraph, pos, node_size=200, node_color="gray",
-                               alpha=0.4, ax=ax)
-
-        # Path node labels
-        nx.draw_networkx_labels(pgraph, pos, labels, font_family="sans-serif", font_size=6, ax=ax)
-
-        # Box
-        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        plt.title(title)
-
-        # Scale
-        corr = int((graph.vertices * 0.05))
-        fig.gca().set_aspect('equal', adjustable='box')
-        plt.xlim(0 - corr, graph.vertices + corr)
-        plt.ylim(0 - corr, graph.vertices + corr)
-
-        # Export
-        fig.savefig(filename + ".png", dpi=250)
-        plt.show()
-
-    def printpath(title: string, dist: float, filename: string):
-        pgraph = nx.DiGraph()
-
-        # Label vertex
-        labels = {}
-        for vertex in path:
-            labels[vertex] = vertex
-
-        # Create nodes
-        for vertex in set(list(path) + list(visited)):
-            pgraph.add_node(vertex, pos=tuple(graph.coords[vertex]))
-
-        # Create edges
-        for vertex, next_vertex in zip(path, path[1:]):
-            adj = [item for item in graph[vertex] if item.neighbor == next_vertex][0]
-            pgraph.add_edge(vertex, next_vertex, weight=round(adj.weight, 2))
-
-        fig, ax = plt.subplots(figsize=(10, 10))
-
-        # Path nodes
-        pos = nx.get_node_attributes(pgraph, 'pos')
-        nx.draw_networkx_nodes(pgraph, pos, nodelist=path, node_size=600, node_color=range(len(path)), cmap=plt.cm.cool,
-                               alpha=1, edgecolors="black", ax=ax)
-
-        # Visited nodes
-        nx.draw_networkx_nodes(pgraph, pos, nodelist=visited, node_size=200, node_color="gray",
-                               alpha=0.1, ax=ax)
-
-        # Edges
-        nx.draw_networkx_edges(pgraph, pos, edgelist=pgraph.edges, width=0.5, edge_color="black", ax=ax)
-
-        # Path node labels
-        nx.draw_networkx_labels(pgraph, pos, labels, font_family="sans-serif", font_size=10, ax=ax)
-
-        # Edge weight labels
-        edge_labels = nx.get_edge_attributes(pgraph, "weight")
-        nx.draw_networkx_edge_labels(pgraph, pos, edge_labels, font_family="sans-serif", font_size=8, ax=ax)
-
-        # Legend
-        cm = plt.cm.cool(range(256))
-        legend = [
-            mpatches.Patch(color=cm[0], label='Origem'),
-            mpatches.Patch(color=cm[-1], label="Destino"),
-            mpatches.Patch(color="gray", label="Visitado")
-        ]
-
-        # Box
-        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        plt.title(title + " [Distância: " + str(round(dist, 2)) + "]")
-        plt.legend(handles=legend)
-
-        # Scale
-        corr = int((graph.vertices * 0.05))
-        fig.gca().set_aspect('equal', adjustable='box')
-        plt.xlim(0 - corr, graph.vertices + corr)
-        plt.ylim(0 - corr, graph.vertices + corr)
-
-        # Export
-        fig.savefig(filename + ".png", dpi=250)
-        plt.show()
-
     graph = readgraph()
     src, goal = readvertices()
 
-    # Grafo original
-    print()
-    printgraph("Grafo", "grafo")
+    plot.graph(graph)
 
-    dist, path, visited = search.a(graph, src, goal)
-    print(f"A: {path} ({dist :.2f})")
-    printpath("A", dist, "a")
-
-    dist, path, visited = search.dfs(graph, src, goal)
-    print(f"DFS: {path} ({dist :.2f})")
-    printpath("DFS", dist, "dfs")
-
-    dist, path, visited = search.bfs(graph, src, goal)
-    print(f"BFS: {path} ({dist :.2f})")
-    printpath("BFS", dist, "bfs")
-
-    dist, path, visited = search.bestfirst(graph, src, goal)
-    print(f"Best First: {path} ({dist :.2f})")
-    printpath("Best First", dist, "bestfirst")
-
-    dist, path, visited = search.dijkstra(graph, src, goal)
-    print(f"Dijkstra: {path} ({dist :.2f})")
-    printpath("Dijkstra", dist, "dijkstra")
-
-    dist, path, visited = search.astar(graph, src, goal)
-    print(f"A*: {path} ({dist :.2f})")
-    printpath("A*", dist, "a_star")
+    for title, algo in {"DFS": search.dfs, "BFS": search.bfs, "Best First": search.bestfirst, "Dijkstra": search.dijkstra, "A": search.a, "A*": search.astar}.items():
+        dist, path, visited = algo(graph, src, goal)
+        plot.path(graph, dist, path, visited, title)
 
 
 def measure():
